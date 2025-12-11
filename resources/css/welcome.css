@@ -1,0 +1,149 @@
+:root {
+        --primary: #64439aff;
+        --secondary: #9d50bb;
+        --dark: #2d1b4e;
+        --light: #f8f4ff;
+        --gray: #ddd;   
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+        font-family: 'Poppins', sans-serif;
+        background: #0f0a1a;
+        color: #fff;
+        line-height: 1.6;
+        }
+
+        /* Navbar */
+        nav {
+        background: rgba(45, 27, 78, 0.95);
+        backdrop-filter: blur(10px);
+        position: fixed;
+        width: 100%;
+        top: 0;
+        z-index: 1000;
+        padding: 1rem 5%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        .logo {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #fff;
+        text-decoration: none;
+        }
+        .logo i { color: var(--secondary); }
+        .nav-links a {
+        color: #fff;
+        text-decoration: none;
+        margin: 0 20px;
+        font-weight: 500;
+        transition: 0.3s;
+        }
+        .nav-links a:hover { color: var(--secondary); }
+
+        /* Hero Section */
+        .hero {
+        height: 100vh;
+        background: linear-gradient(135deg, #2d1b4e 0%, #0f0a1a 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        }
+        .wave-bottom {
+        position: absolute;
+        bottom: 0;
+        width: 200%;
+        height: 300px;
+        background: white;
+        clip-path: ellipse(100% 55% at 50% 100%);
+        }
+        .hero-content {
+        z-index: 2;
+        max-width: 900px;
+        padding: 0 20px;
+        }
+        .hero h1 {
+        font-size: 4.5rem;
+        margin-bottom: 20px;
+        font-weight: 700;
+        }
+        .hero p {
+        font-size: 1.3rem;
+        margin-bottom: 40px;
+        opacity: 0.9;
+        }
+        .btn {
+        padding: 15px 40px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        }
+        .btn:hover {
+        background: #5a3a8d;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(110, 72, 170, 0.4);
+        }
+
+        /* Sections */
+        section {
+        padding: 100px 5%;
+        background: white;
+        color: #333;
+        }
+        .section-title {
+        text-align: center;
+        font-size: 2.8rem;
+        margin-bottom: 60px;
+        color: var(--primary);
+        }
+
+        /* Pet Cards */
+        .pets-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        max-width: 1200px;
+        margin: 0 auto;
+        }
+        .pet-card {
+        background: #fff;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transition: 0.4s;
+        }
+        .pet-card:hover { transform: translateY(-15px); }
+        .pet-card img {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+        }
+        .pet-info {
+        padding: 25px;
+        text-align: center;
+        }
+        .pet-info h3 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        color: var(--primary);
+        }
+
+        /* Footer */
+        footer {
+        background: var(--dark);
+        color: #ccc;
+        text-align: center;
+        padding: 50px 20px;
+        font-size: 0.9rem;
+        }

@@ -220,7 +220,7 @@
                 <h3 class="text-2xl font-bold">Report Lost Pet</h3>
                 <p class="opacity-90">My pet is missing</p>
             </a>
-            <a href="/report-found.php" class="action-card text-white">
+            <a href="{{ url('report_found') }}" class="action-card text-white">
                 <i class="fas fa-search-location text-5xl mb-4"></i>
                 <h3 class="text-2xl font-bold">Report Found Pet</h3>
                 <p class="opacity-90">I found a stray</p>

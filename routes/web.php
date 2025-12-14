@@ -59,3 +59,7 @@ Route::get('/homepage', function() {
 Route::get('/report_lost', function() {
     return view('nav.report_lost');
 });
+
+Route::get('/report_found', function() {
+    return view('nav.report_found');
+});

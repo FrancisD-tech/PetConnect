@@ -76,9 +76,9 @@
             <button id="closeSheet" aria-label="Close"><i class="fas fa-times text-gray-500"></i></button>
         </div>
         <div class="space-y-4">
-            <a href="/report-lost.php" class="block p-4 bg-red-50 rounded-xl text-red-700 font-medium">Report Lost Pet</a>
-            <a href="/report-found.php" class="block p-4 bg-green-50 rounded-xl text-green-700 font-medium">Report Found Pet</a>
-            <a href="/adoption.php" class="block p-4 bg-purple-50 rounded-xl text-purple-700 font-medium">Browse Adoption</a>
+            <a href="report_found" class="block p-4 bg-red-50 rounded-xl text-red-700 font-medium">Report Lost Pet</a>
+            <a href="report-found" class="block p-4 bg-green-50 rounded-xl text-green-700 font-medium">Report Found Pet</a>
+            <a href="dashboard" class="block p-4 bg-purple-50 rounded-xl text-purple-700 font-medium">Browse Adoption</a>
         </div>
     </div>
 
@@ -118,24 +118,32 @@
                     </div>
                     
                     <div class="p-2">
-                        <div class="menu-item">
+                        <a href="profile">
+                            <div class="menu-item">
                             <i class="fas fa-user"></i>
                             <span class="flex-1 font-medium">My Profile</span>
                         </div>
-                        <div class="menu-item">
+                        </a>
+                        <a href="favorite">
+                            <div class="menu-item">
                             <i class="fas fa-heart"></i>
                             <span class="flex-1 font-medium">My Favorites</span>
-                            <span class="badge">5</span>
+                            <span class="badge"></span>
                         </div>
-                        <div class="menu-item">
+                        </a>
+                        <a href="mypet">
+                            <div class="menu-item">
                             <i class="fas fa-dog"></i>
                             <span class="flex-1 font-medium">My Pets</span>
                         </div>
-                        <div class="menu-item">
+                        </a>
+                        <a href="messages">
+                            <div class="menu-item">
                             <i class="fas fa-message"></i>
                             <span class="flex-1 font-medium">Messages</span>
-                            <span class="badge">12</span>
+                            <span class="badge"></span>
                         </div>
+                        </a>
                         
                         <div class="menu-divider"></div>
                         
@@ -163,11 +171,11 @@
                     <i class="fas fa-home w-5"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-purple-50 hover:text-purple-700 transition text-gray-700 font-medium">
+                <a href="dashboard" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-purple-50 hover:text-purple-700 transition text-gray-700 font-medium">
                     <i class="fas fa-paw w-5"></i>
                     <span>Adoption</span>
                 </a>
-                <a href="/resources/views/nav/report_lost.php" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-purple-50 hover:text-purple-700 transition text-gray-700 font-medium">
+                <a href="dashboardL" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-purple-50 hover:text-purple-700 transition text-gray-700 font-medium">
                     <i class="fas fa-search w-5"></i>
                     <span>Lost Pet</span>
                 </a>
@@ -198,6 +206,9 @@
             </div>
         </div>
 
+
+
+
         <!-- Desktop Search -->
         <div class="hidden md:flex justify-center mb-8">
             <div class="relative w-full max-w-xl">
@@ -206,12 +217,20 @@
             </div>
         </div>
 
+
+
+
+
         <!-- Urgent Alert Banner -->
         <div class="alert-banner mb-8">
             <i class="fas fa-exclamation-triangle mr-2"></i>
-            <strong>Urgent Alert:</strong> 5 lost pets reported in your area today (Dec 11, 2025). Enable location for real-time alerts?
+            <strong>Urgent Alert:</strong> {{ $urgentCount }} lost pets reported in your area today. Enable location for real-time alerts?
             <button class="ml-4 bg-white text-red-600 px-4 py-1 rounded-full text-sm font-bold">Enable Now</button>
         </div>
+
+
+
+
 
         <!-- Quick Actions -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -225,49 +244,45 @@
                 <h3 class="text-2xl font-bold">Report Found Pet</h3>
                 <p class="opacity-90">I found a stray</p>
             </a>
-            <a href="/adoption.php" class="action-card text-white">
+            <a href="dashboard" class="action-card text-white">
                 <i class="fas fa-home text-5xl mb-4"></i>
                 <h3 class="text-2xl font-bold">Adopt a Pet</h3>
                 <p class="opacity-90">Give a pet a forever home</p>
             </a>
         </div>
 
+
+
+
+
+
         <!-- Possible Matches -->
         <div class="mb-12">
             <h2 class="text-3xl font-bold mb-6">Possible Matches for Your Lost Pet</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div class="pet-card relative">
-                    <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400" alt="Golden Retriever match" class="pet-image">
-                    <span class="match-badge">96% Match</span>
-                    <div class="p-4">
-                        <p class="font-bold text-lg">Buddy</p>
-                        <p class="text-sm text-gray-600">Golden Retriever • Found Dec 10</p>
-                        <div class="match-progress"><div class="match-progress-fill" style="width: 96%;"></div></div>
-                        <button class="mt-2 w-full bg-purple-600 text-white py-2 rounded-lg font-semibold">Contact Finder</button>
+            @if($possibleMatches->isEmpty())
+                <p class="text-center text-xl opacity-80">No matches yet. We'll notify you when we find one!</p>
+            @else
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    @foreach($possibleMatches as $match)
+                    <div class="pet-card relative">
+                        <img src="{{ $match->image }}" class="pet-image">
+                        <span class="match-badge">{{ rand(80,98) }}% Match</span>
+                        <div class="p-4">
+                            <p class="font-bold text-lg">{{ $match->pet_name ?? 'Unknown' }}</p>
+                            <p class="text-sm text-gray-600">{{ $match->breed ?? 'Unknown breed' }} • Found {{ $match->found_date->diffForHumans() }}</p>
+                            <a href="{{ route('found.show', $match) }}" class="mt-2 w-full bg-purple-600 text-white py-2 rounded-lg font-semibold block text-center">Contact Finder</a>
+                        </div>
                     </div>
+                    @endforeach
                 </div>
-                <div class="pet-card relative">
-                    <img src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400" alt="Shih Tzu match" class="pet-image">
-                    <span class="match-badge">82% Match</span>
-                    <div class="p-4">
-                        <p class="font-bold text-lg">Max</p>
-                        <p class="text-sm text-gray-600">Shih Tzu • Found Dec 9</p>
-                        <div class="match-progress"><div class="match-progress-fill" style="width: 82%;"></div></div>
-                        <button class="mt-2 w-full bg-purple-600 text-white py-2 rounded-lg font-semibold">Contact Finder</button>
-                    </div>
-                </div>
-                <div class="pet-card relative">
-                    <img src="https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?w=400" alt="Persian Cat match" class="pet-image">
-                    <span class="match-badge">91% Match</span>
-                    <div class="p-4">
-                        <p class="font-bold text-lg">Luna</p>
-                        <p class="text-sm text-gray-600">Persian Cat • Found Dec 11</p>
-                        <div class="match-progress"><div class="match-progress-fill" style="width: 91%;"></div></div>
-                        <button class="mt-2 w-full bg-purple-600 text-white py-2 rounded-lg font-semibold">Contact Finder</button>
-                    </div>
-                </div>
-            </div>
+            @endif
         </div>
+
+
+
+
+
+
 
         <!-- Pets Near You with Filters -->
         <div class="mb-12">
@@ -281,50 +296,39 @@
                 <div class="filter-tab" data-filter="found">Found</div>
                 <div class="filter-tab" data-filter="adopt">Adopt</div>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="petGrid">
+            <div id="petGrid">
+                @foreach($recentLost as $pet)
                 <div class="pet-card" data-type="lost">
                     <div class="relative">
-                        <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400" alt="Buddy" class="pet-image">
+                        <img src="{{ $pet->image }}" class="pet-image">
                         <span class="lost-badge">LOST</span>
                     </div>
                     <div class="p-4 text-center">
-                        <h3 class="font-bold text-xl">Buddy</h3>
-                        <p class="text-gray-600">Golden Retriever • Dec 10</p>
-                        <button class="mt-3 w-full bg-red-600 text-white py-2 rounded-lg font-semibold">I've Seen This Pet</button>
+                        <h3 class="font-bold text-xl">{{ $pet->pet_name }}</h3>
+                        <p class="text-gray-600">{{ $pet->breed }} • Missing {{ $pet->days_missing }} days</p>
+                        <a href="{{ route('lost.show', $pet) }}" class="mt-3 w-full bg-red-600 text-white py-2 rounded-lg font-semibold block">I've Seen This Pet</a>
                     </div>
                 </div>
+                @endforeach
+
+                @foreach($recentFound as $pet)
                 <div class="pet-card" data-type="found">
-                    <div class="relative">
-                        <img src="https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?w=400" alt="Luna" class="pet-image">
-                        <span class="found-badge">FOUND</span>
-                    </div>
-                    <div class="p-4 text-center">
-                        <h3 class="font-bold text-xl">Luna</h3>
-                        <p class="text-gray-600">Persian Cat • Dec 11</p>
-                        <button class="mt-3 w-full bg-green-600 text-white py-2 rounded-lg font-semibold">Contact Owner</button>
-                    </div>
+                    <!-- similar structure with FOUND badge -->
                 </div>
+                @endforeach
+
+                @foreach($adoptable as $pet)
                 <div class="pet-card" data-type="adopt">
-                    <img src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=400" alt="Coco" class="pet-image">
-                    <div class="p-4 text-center">
-                        <h3 class="font-bold text-xl">Coco</h3>
-                        <p class="text-gray-600">French Bulldog</p>
-                        <a href="#" class="mt-3 inline-block w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg font-semibold">Adopt Me</a>
-                    </div>
+                    <!-- similar with Adopt Me button -->
                 </div>
-                <div class="pet-card" data-type="adopt">
-                    <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400" alt="Bella" class="pet-image">
-                    <div class="p-4 text-center">
-                        <h3 class="font-bold text-xl">Bella</h3>
-                        <p class="text-gray-600">Beagle Mix</p>
-                        <a href="#" class="mt-3 inline-block w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg font-semibold">Adopt Me</a>
-                    </div>
-                </div>
-                <!-- Add more dynamically via JS if needed -->
+                @endforeach
             </div>
         </div>
     </main>
 
+
+
+    
     <!-- Footer -->
     <footer class="bg-white/10 backdrop-blur text-center py-8 mt-10">
         <p class="text-white/80">&copy; 2025 PetConnect. Made with Heart for pets everywhere.</p>

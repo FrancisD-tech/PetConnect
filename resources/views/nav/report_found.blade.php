@@ -36,14 +36,26 @@
             <div class="p-8">
                 <div class="progress mb-8"><div class="progress-fill" id="progress"></div></div>
 
-                <form id="lostForm">
+                <form id="foundForm" method="POST" action="{{ route('found.store') }}" enctype="multipart/form-data">
+                    @csrf
+                    
+                    @if($errors->any())
+                        <div class="mb-4 p-4 bg-red-100 text-red-700 rounded-xl">
+                            <ul>
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     <!-- Step 1: Photos -->
                     <div class="step active" data-step="1">
                         <h2 class="text-2xl font-bold mb-6">Upload Photos (up to 5)</h2>
                         <div class="upload-area" onclick="document.getElementById('photos').click()">
                             <i class="fas fa-cloud-upload-alt text-5xl text-purple-600 mb-4"></i>
                             <p class="text-lg">Click to upload or drag & drop</p>
-                            <input type="file" id="photos" multiple accept="image/*" class="hidden">
+                            <input type="file" name="images[]" id="photos" multiple accept="image/*" class="hidden">
                         </div>
                         <div id="photoPreview" class="grid grid-cols-3 gap-4 mt-6"></div>
                     </div>
@@ -52,33 +64,37 @@
                     <div class="step" data-step="2">
                         <h2 class="text-2xl font-bold mb-6">Pet Details</h2>
                         <div class="grid md:grid-cols-2 gap-6">
-                            <input type="text" placeholder="Pet Name" class="p-4 rounded-xl border border-gray-300 focus:border-purple-600 outline-none" required>
-                            <select class="p-4 rounded-xl border border-gray-300 focus:border-purple-600 outline-none">
-                                <option>Species</option>
-                                <option>Dog</option>
-                                <option>Cat</option>
-                                <option>Other</option>
+                            <select name="species" class="p-4 rounded-xl border border-gray-300 focus:border-purple-600 outline-none" required>
+                                <option value="">Species</option>
+                                <option value="Dog">Dog</option>
+                                <option value="Cat">Cat</option>
+                                <option value="Other">Other</option>
                             </select>
-                            <input type="text" placeholder="Breed" class="p-4 rounded-xl border border-gray-300">
-                            <input type="text" placeholder="Age" class="p-4 rounded-xl border border-gray-300">
-                            <input type="text" placeholder="Color/Markings" class="p-4 rounded-xl border border-gray-300 md:col-span-2">
+                            <input type="text" name="breed" placeholder="Breed" class="p-4 rounded-xl border border-gray-300">
+                            <input type="text" name="approximate_age" placeholder="Approximate Age" class="p-4 rounded-xl border border-gray-300">
+                            <input type="text" name="color" placeholder="Color/Markings" class="p-4 rounded-xl border border-gray-300 md:col-span-2">
+                            <select name="gender" class="p-4 rounded-xl border border-gray-300 focus:border-purple-600 outline-none md:col-span-2" required>
+                                <option value="">Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="unknown">Unknown</option>
+                            </select>
                         </div>
                     </div>
 
                     <!-- Step 3: Location & Contact -->
                     <div class="step" data-step="3">
-                        <h2 class="text-2xl font-bold mb-6">Last Seen Location</h2>
-                        <input type="text" placeholder="Address or Area" class="w-full p-4 rounded-xl border border-gray-300 mb-4">
-                        <div class="bg-gray-200 h-64 rounded-xl mb-6 flex items-center justify-center">
-                            <p class="text-gray-600"><i class="fas fa-map-marked-alt text-4xl"></i><br>Map will appear here</p>
-                        </div>
-                        <textarea placeholder="Additional details (behavior, collar, microchip?)" rows="4" class="w-full p-4 rounded-xl border border-gray-300"></textarea>
+                        <h2 class="text-2xl font-bold mb-6">Found Location</h2>
+                        <input type="text" name="found_location" placeholder="Address or Area" class="w-full p-4 rounded-xl border border-gray-300 mb-4" required>
+                        <input type="date" name="found_date" class="w-full p-4 rounded-xl border border-gray-300 mb-4" required>
+                        <input type="tel" name="contact_phone" placeholder="Contact Phone" class="w-full p-4 rounded-xl border border-gray-300 mb-4" required>
+                        <textarea name="description" placeholder="Additional details (behavior, collar, microchip?)" rows="4" class="w-full p-4 rounded-xl border border-gray-300"></textarea>
                     </div>
 
                     <div class="flex justify-between mt-10">
-                        <button type="button" id="prevBtn" class="px-8 py-3 bg-gray-300 text-gray-700 rounded-xl font-bold">Previous</button>
+                        <button type="button" id="prevBtn" class="px-8 py-3 bg-gray-300 text-gray-700 rounded-xl font-bold" style="display:none;">Previous</button>
                         <button type="button" id="nextBtn" class="px-8 py-3 bg-purple-600 text-white rounded-xl font-bold">Next</button>
-                        <button type="submit" id="submitBtn" class="hidden px-12 py-3 bg-red-600 text-white rounded-xl font-bold">Submit Found Report</button>
+                        <button type="submit" id="submitBtn" class="hidden px-12 py-3 bg-green-600 text-white rounded-xl font-bold">Submit Found Report</button>
                     </div>
                 </form>
             </div>
@@ -120,10 +136,13 @@
         });
 
         document.getElementById('lostForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            alert('Lost pet report submitted! We’re notifying everyone nearby.');
-            window.location.href = '/';
+            // Form will submit normally to Laravel
         });
-    </script>
+
+        // Or for found form:
+        document.getElementById('foundForm').addEventListener('submit', (e) => {
+            // Form will submit normally to Laravel
+        });
+            </script>
 </body>
 </html>

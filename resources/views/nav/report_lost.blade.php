@@ -149,6 +149,19 @@
         document.getElementById('foundForm').addEventListener('submit', (e) => {
             // Form will submit normally to Laravel
         });
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        @if(session('success'))
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: '{{ session('success') }}',
+                confirmButtonColor: '#7c3aed',
+            });
+        </script>
+        @endif
     </script>
 </body>
 </html>

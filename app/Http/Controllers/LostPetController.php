@@ -57,6 +57,7 @@ class LostPetController extends Controller
             'image' => !empty($imagePaths) ? $imagePaths[0] : null, // Store first image
         ]);
 
-        return redirect('homepage')->with('success', 'Lost pet report submitted! We are notifying everyone nearby.');
+        return redirect('homepage')->with('success', 'Lost pet report submitted successfully!')
+                                 ->with('alert', true);
     }
 }

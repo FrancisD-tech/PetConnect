@@ -198,24 +198,171 @@
     <!-- Main Content -->
     <main class="main-content p-6">
 
-        <!-- Mobile Search -->
+        <!-- Mobile Search 
         <div class="mobile-search md:hidden">
             <div class="relative">
                 <input type="text" placeholder="Search for pets..." class="w-full py-3 px-5 pr-12 rounded-full bg-white/25 backdrop-blur-md text-white placeholder-white/70 outline-none shadow-lg text-lg">
                 <i class="fas fa-search absolute right-5 top-1/2 -translate-y-1/2 text-white/70 text-xl"></i>
             </div>
-        </div>
+        </div>  -->
 
 
 
 
         <!-- Desktop Search -->
-        <div class="hidden md:flex justify-center mb-8">
-            <div class="relative w-full max-w-xl">
-                <input type="text" placeholder="Search for pets..." class="w-full py-3 px-5 pr-12 rounded-full bg-white/20 backdrop-blur-md text-white placeholder-white/70 outline-none shadow-lg text-lg">
-                <i class="fas fa-search absolute right-5 top-1/2 -translate-y-1/2 text-white/70 text-xl"></i>
+        <div class="relative max-w-4xl mx-auto mb-12">
+            <div class="relative">
+                <input 
+                    type="text" 
+                    id="searchInput"
+                    placeholder="Search by name, breed, species, or location..." 
+                    class="w-full px-8 py-6 pr-16 text-2xl rounded-3xl shadow-2xl focus:outline-none focus:ring-4 focus:ring-purple-400 text-gray-800"
+                    autocomplete="off"
+                >
+                <button class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-purple-600 text-white px-8 py-3 rounded-2xl font-bold text-xl hover:bg-purple-700">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            
+            <!-- Search Suggestions Dropdown -->
+            <div id="searchSuggestions" class="hidden absolute w-full mt-2 bg-white rounded-2xl shadow-2xl overflow-hidden z-50 max-h-96 overflow-y-auto">
+                <!-- Suggestions will be populated here -->
             </div>
         </div>
+
+        <style>
+        .suggestion-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .suggestion-item:hover {
+            background: #f3f4f6;
+        }
+        .suggestion-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        .badge-lost { background: #fee2e2; color: #dc2626; }
+        .badge-found { background: #d1fae5; color: #059669; }
+        .badge-adoption { background: #e0e7ff; color: #6366f1; }
+        </style>
+
+        <script>
+        const searchInput = document.getElementById('searchInput');
+        const searchSuggestions = document.getElementById('searchSuggestions');
+        let debounceTimer;
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                searchSuggestions.classList.add('hidden');
+                return;
+            }
+            
+            debounceTimer = setTimeout(() => {
+                fetch(`/search/suggestions?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        displaySuggestions(data);
+                    })
+                    .catch(error => console.error('Search error:', error));
+            }, 300);
+        });
+
+        function displaySuggestions(data) {
+            let html = '';
+            let hasResults = false;
+            
+            // Lost Pets
+            if (data.lost && data.lost.length > 0) {
+                hasResults = true;
+                html += '<div class="p-4 bg-gray-50 font-bold text-gray-700">Lost Pets</div>';
+                data.lost.forEach(pet => {
+                    html += `
+                        <a href="/lost/${pet.id}" class="suggestion-item block text-gray-800 no-underline">
+                            <div class="flex items-center gap-4">
+                                ${pet.image ? `<img src="/storage/${pet.image}" class="w-16 h-16 rounded-lg object-cover">` : '<div class="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center"><i class="fas fa-image text-gray-400"></i></div>'}
+                                <div class="flex-1">
+                                    <span class="suggestion-badge badge-lost">LOST</span>
+                                    <strong class="text-lg">${pet.name}</strong>
+                                    <p class="text-gray-600 text-sm">${pet.breed || pet.species} • ${pet.last_seen_location}</p>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                });
+            }
+            
+            // Found Pets
+            if (data.found && data.found.length > 0) {
+                hasResults = true;
+                html += '<div class="p-4 bg-gray-50 font-bold text-gray-700">Found Pets</div>';
+                data.found.forEach(pet => {
+                    html += `
+                        <a href="/found/${pet.id}" class="suggestion-item block text-gray-800 no-underline">
+                            <div class="flex items-center gap-4">
+                                ${pet.image ? `<img src="/storage/${pet.image}" class="w-16 h-16 rounded-lg object-cover">` : '<div class="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center"><i class="fas fa-image text-gray-400"></i></div>'}
+                                <div class="flex-1">
+                                    <span class="suggestion-badge badge-found">FOUND</span>
+                                    <strong class="text-lg">${pet.species}</strong>
+                                    <p class="text-gray-600 text-sm">${pet.breed || 'Unknown breed'} • ${pet.found_location}</p>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                });
+            }
+            
+            // Adoption Pets
+            if (data.adoption && data.adoption.length > 0) {
+                hasResults = true;
+                html += '<div class="p-4 bg-gray-50 font-bold text-gray-700">Adoption</div>';
+                data.adoption.forEach(pet => {
+                    html += `
+                        <a href="/adoption/${pet.id}" class="suggestion-item block text-gray-800 no-underline">
+                            <div class="flex items-center gap-4">
+                                ${pet.image ? `<img src="/storage/${pet.image}" class="w-16 h-16 rounded-lg object-cover">` : '<div class="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center"><i class="fas fa-image text-gray-400"></i></div>'}
+                                <div class="flex-1">
+                                    <span class="suggestion-badge badge-adoption">ADOPTION</span>
+                                    <strong class="text-lg">${pet.name}</strong>
+                                    <p class="text-gray-600 text-sm">${pet.breed || pet.species} • ${pet.size || ''}</p>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                });
+            }
+            
+            if (!hasResults) {
+                html = '<div class="p-8 text-center text-gray-500">No results found</div>';
+            }
+            
+            searchSuggestions.innerHTML = html;
+            searchSuggestions.classList.remove('hidden');
+        }
+
+        // Close suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+                searchSuggestions.classList.add('hidden');
+            }
+        });
+
+        // Submit search on Enter
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                window.location.href = `/search?q=${encodeURIComponent(this.value)}`;
+            }
+        });
+        </script>
 
 
 

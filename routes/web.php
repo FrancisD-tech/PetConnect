@@ -67,6 +67,14 @@ Route::post('/logout', function () {
     return redirect('/login');
 })->name('logout');
 
+
+// Search Routes
+Route::get('/search', [App\Http\Controllers\SearchController::class, 'index'])->name('search.index');
+Route::get('/search/suggestions', [App\Http\Controllers\SearchController::class, 'search'])->name('search.suggestions');
+
+
+
+
 /*
 |--------------------------------------------------------------------------
 | Protected Routes (Require Authentication)

@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bella • PetConnect</title>
+    <title>PetConnect</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #2f136fff 0%, #7026e6ff 100%); color: white; }
         .glass { background: rgba(255,255,255,0.15); backdrop-blur: blur(16px); border: 1px solid rgba(255,255,255,0.1); }
@@ -36,37 +36,38 @@
         </div>
     </aside>
 
+
     <main class="main-content p-6 pt-20 md:pt-8">
         <div class="max-w-7xl mx-auto">
-            <a href="/adoption/pets" class="inline-flex items-center gap-2 mb-8 text-white/80 hover:text-white text-lg"><i class="fas fa-arrow-left"></i> Back</a>
+            <a href="{{ route('adoption.index') }}" class="inline-flex items-center gap-2 mb-8 text-white/80 hover:text-white text-lg">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
 
             <div class="grid md:grid-cols-2 gap-12">
                 <div>
-                    <img id="mainImg" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1200" class="gallery-img w-full shadow-2xl">
+                    <img id="mainImg" src="{{ $pet->image_main }}" class="gallery-img w-full shadow-2xl">
                     <div class="grid grid-cols-4 gap-4 mt-8">
-                        <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600" class="thumb active" onclick="document.getElementById('mainImg').src=this.src">
-                        <img src="https://images.unsplash.com/photo-1560807707-8cc77767d783?w=600" class="thumb" onclick="document.getElementById('mainImg').src=this.src">
-                        <img src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=600" class="thumb" onclick="document.getElementById('mainImg').src=this.src">
-                        <img src="https://images.unsplash.com/photo-1592194996308-7b43878e84b6?w=600" class="thumb" onclick="document.getElementById('mainImg').src=this.src">
+                        @foreach($pet->images_gallery ?? [] as $img)
+                        <img src="{{ $img }}" class="thumb" onclick="document.getElementById('mainImg').src=this.src">
+                        @endforeach
                     </div>
                 </div>
 
                 <div class="space-y-10">
                     <div>
-                        <h1 class="text-7xl font-bold mb-4">Bella</h1>
-                        <p class="text-3xl opacity-90">Beagle Mix • Female • 2 years old</p>
+                        <h1 class="text-7xl font-bold mb-4">{{ $pet->name }}</h1>
+                        <p class="text-3xl opacity-90">{{ $pet->breed }} • {{ ucfirst($pet->gender) }} • {{ floor($pet->age_months / 12) }} years old</p>
                     </div>
 
                     <div class="glass p-10 rounded-3xl">
                         <p class="text-xl leading-relaxed">
-                            Bella is the sweetest girl who loves belly rubs, long walks, and making new friends. 
-                            She’s fully vaccinated, spayed, and ready for her forever home.
+                            {{ $pet->description }}
                         </p>
                     </div>
 
                     <button onclick="document.getElementById('modal').classList.remove('hidden')" 
                             class="w-full py-8 bg-gradient-to-r from-purple-600 to-pink-600 text-4xl font-bold rounded-3xl shadow-2xl hover:scale-105 transition">
-                        Apply to Adopt Bella
+                        Apply to Adopt {{ $pet->name }}
                     </button>
                 </div>
             </div>

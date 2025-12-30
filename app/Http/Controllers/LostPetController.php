@@ -41,10 +41,11 @@ class LostPetController extends Controller
                 $imagePaths[] = $image->store('lost_pets', 'public');
             }
         }
+       
 
         LostPet::create([
             'user_id' => Auth::id(),
-            'name' => $request->name,
+            'pet_name' => $request->name,
             'species' => $request->species,
             'breed' => $request->breed,
             'color' => $request->color,
@@ -52,12 +53,59 @@ class LostPetController extends Controller
             'gender' => $request->gender,
             'description' => $request->description,
             'last_seen_location' => $request->last_seen_location,
-            'last_seen_date' => $request->last_seen_date,
+            'lost_date' => $request->last_seen_date,
             'contact_phone' => $request->contact_phone,
             'image' => !empty($imagePaths) ? $imagePaths[0] : null, // Store first image
+            'is_reunited' => false,
         ]);
 
         return redirect('homepage')->with('success', 'Lost pet report submitted successfully!')
                                  ->with('alert', true);
+    }
+
+    public function update(Request $request, LostPet $lostPet)
+    {
+        // Only allow the owner to update
+        if (auth()->id() !== $lostPet->user_id) {
+            abort(403, 'Unauthorized');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'breed' => 'required|string|max:255',
+            'age_months' => 'required|integer|min:0',
+            'gender' => 'required|in:male,female',
+            'last_seen_location' => 'required|string',
+            'description' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'lat' => 'nullable|numeric',
+            'lng' => 'nullable|numeric',
+        ]);
+
+        $data = $request->only([
+            'name', 'breed', 'age_months', 'gender',
+            'last_seen_location', 'description', 'lat', 'lng'
+        ]);
+
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($lostPet->image) {
+                Storage::disk('public')->delete($lostPet->image);
+            }
+            $data['image'] = $request->file('image')->store('lost-pets', 'public');
+        }
+
+        $lostPet->update($data);
+
+        return redirect()->route('lost.show', $lostPet)->with('success', 'Lost pet report updated successfully!');
+    }
+
+    public function edit(LostPet $lostPet)
+    {
+        if (auth()->id() !== $lostPet->user_id) {
+            abort(403);
+        }
+
+        return view('nav.report_lost', compact('lostPet'));
     }
 }

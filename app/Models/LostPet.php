@@ -3,18 +3,39 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class LostPet extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'user_id',
+        'pet_name',   
+        'species',        
+        'breed',
+        'color',
+        'age',
+        'gender',
+        'description',        
+        'last_seen_location', 'lat', 'lng', 
+        'lost_date',  
+        'contact_phone',       
+        'image',
+        'is_reunited'
+    ];
+
+    protected $casts = [
+        'lost_date' => 'date',
+        'is_reunited' => 'boolean',
+    ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    // Fixed accessor
     public function getDaysMissingAttribute()
     {
-        return now()->diffInDays($this->lost_date);
+        return $this->lost_date->diffInDays(now());
     }
 }

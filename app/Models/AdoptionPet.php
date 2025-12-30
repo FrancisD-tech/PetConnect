@@ -6,12 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class AdoptionPet extends Model
 {
-    protected $table = 'adoption_pets';
+    protected $table = 'adoptable_pets';
 
     protected $fillable = [
-        'user_id', 'name', 'species', 'breed', 'age', 'gender', 'size',
-        'color', 'description', 'health_status', 'vaccinated', 'neutered',
-        'good_with_kids', 'good_with_pets', 'adoption_fee', 'image', 'is_adopted'
+        'name',
+        //'species',
+        'breed',
+        'age_months',
+        'gender',
+        'location',
+        'description',
+        'image_main',
     ];
 
     protected $casts = [
@@ -26,5 +31,5 @@ class AdoptionPet extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-}
+    } 
+} 

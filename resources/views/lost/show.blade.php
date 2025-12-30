@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $lostPet->name }} • Lost Pet • PetConnect</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <link rel="stylesheet" href="{{ asset('css/api.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="{{ asset('js/api.js') }}"></script>
     <style>
         body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #2f136fff 0%, #7026e6ff 100%); color: white; }
         .glass { background: rgba(255,255,255,0.15); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); }
@@ -57,9 +59,7 @@
                     <div class="glass mt-8 p-8 rounded-3xl">
                         <h3 class="text-3xl font-bold mb-4">Last Seen Location</h3>
                         <p class="text-xl mb-4">{{ $lostPet->last_seen_location }}</p>
-                        <div class="bg-gray-300 h-64 rounded-2xl flex items-center justify-center text-gray-600">
-                            <p class="text-xl">Map goes here</p>
-                        </div>
+                        <div id="map" class="h-96 rounded-2xl shadow-lg"></div>
                     </div>
                 </div>
 
@@ -73,7 +73,7 @@
                             {{ $lostPet->age ? $lostPet->age . ' years' : 'Age unknown' }}
                         </p>
                         <p class="text-xl mt-6">
-                            Missing since {{ $lostPet->last_seen_date->format('F d, Y') }}
+                            Missing since {{ \Carbon\carbon::parse($lostPet->last_seen_date)->format('F d, Y')}}
                         </p>
                         
                         @if($lostPet->color)
@@ -103,7 +103,7 @@
                         <a href="#" class="flex-1 py-4 bg-blue-600 text-white text-center text-xl font-bold rounded-xl hover:bg-blue-700">
                             Edit Report
                         </a>
-                        <form action="#" method="POST" class="flex-1" onsubmit="return confirm('Mark as reunited?')">
+                        <form action="{{ route('lost.update', $lostPet) }}" method="POST" class="flex-1" onsubmit="return confirm('Mark as reunited?')">
                             @csrf
                             @method('PATCH')
                             <button type="submit" class="w-full py-4 bg-purple-600 text-white text-xl font-bold rounded-xl hover:bg-purple-700">
@@ -137,6 +137,46 @@
 
     <script>
         document.getElementById('hamburger')?.addEventListener('click', () => document.querySelector('.sidebar').classList.toggle('open'));
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&callback=initMap" async defer></script>
+    <script>
+    function initMap() {
+        // Use stored lat/lng if available
+        @if($lostPet->lat && $lostPet->lng)
+            const location = { lat: {{ $lostPet->lat }}, lng: {{ $lostPet->lng }} };
+        @else
+            // Fallback: center on a default location (e.g., Philippines)
+            const location = { lat: 7.7822, lng: 122.5868 }; // Ipil Rotonda
+        @endif
+
+        const map = new google.maps.Map(document.getElementById("map"), {
+            center: location,
+            zoom: 16,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+            styles: [ // Optional: nice purple theme to match your site
+                { featureType: "all", elementType: "labels.text.fill", stylers: [{ color: "#ffffff" }] },
+                { featureType: "all", elementType: "labels.text.stroke", stylers: [{ color: "#000000" }, { lightness: 13 }] },
+                { featureType: "landscape", elementType: "all", stylers: [{ color: "#2f136f" }] },
+                { featureType: "road", elementType: "all", stylers: [{ lightness: 20 }] },
+            ]
+        });
+
+        new google.maps.Marker({
+            position: location,
+            map: map,
+            title: "Last seen here",
+            icon: {
+                url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png" // Red marker (or use a custom pet icon later)
+            }
+        });
+    }
+
+    // Fallback if lat/lng missing and address exists (optional advanced)
+    @if(!$lostPet->lat || !$lostPet->lng)
+        // You could add geocoding here to convert address to lat/lng on page load, but for now fallback works
+    @endif
     </script>
 </body>
 </html>

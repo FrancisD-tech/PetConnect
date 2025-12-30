@@ -60,6 +60,14 @@
         .dropdown-menu.active .menu-item:nth-child(4) { animation-delay: 0.2s; }
         .dropdown-menu.active .menu-item:nth-child(5) { animation-delay: 0.25s; }
         .dropdown-menu.active .menu-item:nth-child(6) { animation-delay: 0.3s; }
+
+
+        .pet-card { background: white; color: #1f2937; border-radius: 24px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.2); transition: all 0.3s; }
+        .pet-card:hover { transform: translateY(-8px); }
+        .lost-badge { background: #fee2e2; color: #dc2626; padding: 0.5rem 1rem; border-radius: 9999px; font-weight: bold; font-size: 0.875rem; }
+        .found-badge { background: #d1fae5; color: #059669; padding: 0.5rem 1rem; border-radius: 9999px; font-weight: bold; font-size: 0.875rem; }
+        .adopt-badge { background: #e0e7ff; color: #6366f1; padding: 0.5rem 1rem; border-radius: 9999px; font-weight: bold; font-size: 0.875rem; }
+        .filter-btn.active { background: white !important; color: #7c3aed !important; }
     </style>
 </head>
 <body class="relative">
@@ -82,89 +90,105 @@
         </div>
     </div>
 
-    <!-- Sidebar (Your exact original structure) -->
     <aside class="sidebar">
         <div class="p-6">
             <div class="profile-dropdown ml-auto">
-                <div class="profile-trigger flex items-center gap-3 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full">
-                    <div class="relative">
-                        <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="Profile" class="w-10 h-10 rounded-full border-2 border-white">
-                        <div class="status-indicator"></div>
-                    </div>
-                    <div class="hidden md:block">
-                        <div class="font-semibold text-sm">Jericoro</div>
-                        <div class="text-xs text-white/70">Premium Member</div>
-                    </div>
-                    <i class="fas fa-chevron-down text-sm"></i>
+            <!-- Clickable Trigger (visible part) -->
+            <div class="profile-trigger flex items-center gap-3 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full cursor-pointer">
+                <div class="relative">
+
+                    <img src="{{ auth()->user()->profile_photo_path 
+                    ? asset('storage/' . auth()->user()->profile_photo_path) 
+                    : 'https://randomuser.me/api/portraits/men/1.jpg' }}" 
+                    alt="Profile" class="w-10 h-10 rounded-full border-2 border-white">
+
+                    <div class="status-indicator {{ auth()->user()->verification_status === 'verified' ? 'bg-green-500' : 'bg-yellow-500' }}"></div>
                 </div>
-                
-                <div class="dropdown-menu">
-                    <div class="menu-header">
-                        <div class="flex items-center gap-3 mb-3">
-                            <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="Profile" class="w-14 h-14 rounded-full border-3 border-white/50">
-                            <div>
-                                <h3 class="font-bold text-lg">Jericoro</h3>
-                                <p class="text-sm text-white/80">jericoro@petconnect.com</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <div class="bg-white/20 backdrop-blur px-3 py-1 rounded-full text-xs">
-                                <i class="fas fa-crown text-yellow-300 mr-1"></i> Premium
-                            </div>
-                            <div class="bg-white/20 backdrop-blur px-3 py-1 rounded-full text-xs">
-                                <i class="fas fa-paw mr-1"></i> 3 Pets
-                            </div>
+                <div class="hidden md:block">
+                    <div class="font-semibold text-sm">{{ auth()->user()->name }}</div>
+                    <div class="text-xs text-white/70">
+                        @if(auth()->user()->is_admin)
+                            Admin Account
+                        @elseif(auth()->user()->verification_status === 'verified')
+                            Verified User
+                        @elseif(auth()->user()->verification_status === 'unverified')
+                            Verification Pending
+                        @else
+                            Member
+                        @endif
+                    </div>
+                </div>
+                <i class="fas fa-chevron-down text-sm"></i>
+            </div>
+
+            <!-- Hidden Dropdown Menu -->
+            <div class="dropdown-menu">
+                <div class="menu-header">
+                    <div class="flex items-center gap-3 mb-3">
+                        <img src="{{ auth()->user()->profile_photo_path 
+                        ? asset('storage/' . auth()->user()->profile_photo_path) 
+                        : 'https://randomuser.me/api/portraits/men/1.jpg' }}" alt="Profile" class="w-14 h-14 rounded-full border-3 border-white/50">
+                        <div>
+                            <h3 class="font-bold text-lg">{{ auth()->user()->name }}</h3>
+                            <p class="text-sm text-white/80">{{ auth()->user()->email }}</p>
                         </div>
                     </div>
-                    
-                    <div class="p-2">
-                        <a href="profile">
-                            <div class="menu-item">
+                    <div class="flex gap-2">
+                        @if(auth()->user()->is_admin)
+                            <div class="bg-white/20 backdrop-blur px-3 py-1 rounded-full text-xs">
+                                <i class="fas fa-crown text-yellow-300 mr-1"></i> Admin
+                            </div>
+                        @endif
+                        <div class="bg-white/20 backdrop-blur px-3 py-1 rounded-full text-xs">
+                            <i class="fas fa-shield-alt mr-1"></i> 
+                            {{ ucfirst(auth()->user()->verification_status ?? 'unverified') }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-2">
+                    <a href="/profile">
+                        <div class="menu-item">
                             <i class="fas fa-user"></i>
                             <span class="flex-1 font-medium">My Profile</span>
                         </div>
-                        </a>
-                        <a href="favorite">
-                            <div class="menu-item">
-                            <i class="fas fa-heart"></i>
-                            <span class="flex-1 font-medium">My Favorites</span>
-                            <span class="badge"></span>
+                    </a>
+                    <a href="{{ route('my-posts.index') }}">
+                        <div class="menu-item">
+                            <i class="fas fa-list-alt text-purple-400"></i>
+                            <span class="flex-1 font-medium">My Post</span>
                         </div>
-                        </a>
-                        <a href="mypet">
-                            <div class="menu-item">
+                    </a>
+                    <a href="/mypets">
+                        <div class="menu-item">
                             <i class="fas fa-dog"></i>
                             <span class="flex-1 font-medium">My Pets</span>
                         </div>
-                        </a>
-                        <a href="messages">
-                            <div class="menu-item">
-                            <i class="fas fa-message"></i>
-                            <span class="flex-1 font-medium">Messages</span>
-                            <span class="badge"></span>
-                        </div>
-                        </a>
-                        
-                        <div class="menu-divider"></div>
-                        
-                        <div class="menu-item">
-                            <i class="fas fa-cog"></i>
-                            <span class="flex-1 font-medium">Settings</span>
-                        </div>
-                        <div class="menu-item">
-                            <i class="fas fa-question-circle"></i>
-                            <span class="flex-1 font-medium">Help & Support</span>
-                        </div>
-                        
-                        <div class="menu-divider"></div>
-                        
-                        <div class="menu-item" style="color: #dc2626;">
+                    </a>
+
+                    <div class="menu-divider"></div>
+
+                    <div class="menu-item">
+                        <i class="fas fa-cog"></i>
+                        <span class="flex-1 font-medium">Settings</span>
+                    </div>
+                    <div class="menu-item">
+                        <i class="fas fa-question-circle"></i>
+                        <span class="flex-1 font-medium">Help & Support</span>
+                    </div>
+
+                    <div class="menu-divider"></div>
+
+                    <form action="/logout" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="menu-item w-full text-left" style="color: #dc2626;">
                             <i class="fas fa-sign-out-alt" style="color: #dc2626;"></i>
                             <span class="flex-1 font-medium">Sign Out</span>
-                        </div>
-                    </div>
+                        </button>
+                    </form>
                 </div>
             </div>
+        </div>
 
             <nav class="space-y-4 mt-8">
                 <a href="homepage" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-purple-50 hover:text-purple-700 transition text-gray-700 font-medium">
@@ -187,7 +211,7 @@
                     <i class="fas fa-bell w-5"></i>
                     <span>Notifications</span>
                 </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-purple-50 hover:text-purple-700 transition text-gray-700 font-medium">
+                <a href="{{ route('messages.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-purple-50 hover:text-purple-700 transition text-gray-700 font-medium">
                     <i class="fas fa-message w-5"></i>
                     <span>Chats</span>
                 </a>
@@ -348,20 +372,6 @@
             searchSuggestions.innerHTML = html;
             searchSuggestions.classList.remove('hidden');
         }
-
-        // Close suggestions when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
-                searchSuggestions.classList.add('hidden');
-            }
-        });
-
-        // Submit search on Enter
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                window.location.href = `/search?q=${encodeURIComponent(this.value)}`;
-            }
-        });
         </script>
 
 
@@ -391,7 +401,7 @@
                 <h3 class="text-2xl font-bold">Report Found Pet</h3>
                 <p class="opacity-90">I found a stray</p>
             </a>
-            <a href="dashboard" class="action-card text-white">
+            <a href="{{ route('adoption.dashboard') }}" class="action-card text-white">
                 <i class="fas fa-home text-5xl mb-4"></i>
                 <h3 class="text-2xl font-bold">Adopt a Pet</h3>
                 <p class="opacity-90">Give a pet a forever home</p>
@@ -416,7 +426,10 @@
                         <span class="match-badge">{{ rand(80,98) }}% Match</span>
                         <div class="p-4">
                             <p class="font-bold text-lg">{{ $match->pet_name ?? 'Unknown' }}</p>
-                            <p class="text-sm text-gray-600">{{ $match->breed ?? 'Unknown breed' }} • Found {{ $match->found_date->diffForHumans() }}</p>
+                            <p class="text-sm text-gray-600">
+                                {{ $match->breed ?? 'Unknown breed' }} • 
+                                Found {{ \Carbon\Carbon::parse($match->found_date)->diffForHumans() }}
+                            </p>
                             <a href="{{ route('found.show', $match) }}" class="mt-2 w-full bg-purple-600 text-white py-2 rounded-lg font-semibold block text-center">Contact Finder</a>
                         </div>
                     </div>
@@ -432,45 +445,88 @@
 
 
         <!-- Pets Near You with Filters -->
-        <div class="mb-12">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-3xl font-bold">Pets Near You</h2>
-                <a href="#" class="bg-white/20 backdrop-blur px-6 py-3 rounded-full font-medium hover:bg-white/30 transition">View All <i class="fas fa-arrow-right ml-2"></i></a>
+        <div class="mb-20">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-5xl font-bold">Pets Near You</h2>
+                <a href="/indexL" class="text-2xl text-white/80 hover:text-white">View All →</a>
             </div>
-            <div class="filter-tabs">
-                <div class="filter-tab active" data-filter="all">All</div>
-                <div class="filter-tab" data-filter="lost">Lost</div>
-                <div class="filter-tab" data-filter="found">Found</div>
-                <div class="filter-tab" data-filter="adopt">Adopt</div>
+
+            <!-- Filter Tabs -->
+            <div class="flex gap-4 mb-8">
+                <button onclick="filterPets('all')" class="filter-btn active px-8 py-3 bg-white text-purple-700 rounded-full font-bold text-xl">All</button>
+                <button onclick="filterPets('lost')" class="filter-btn px-8 py-3 bg-white/20 text-white rounded-full font-bold text-xl">Lost</button>
+                <button onclick="filterPets('found')" class="filter-btn px-8 py-3 bg-white/20 text-white rounded-full font-bold text-xl">Found</button>
+                <button onclick="filterPets('adopt')" class="filter-btn px-8 py-3 bg-white/20 text-white rounded-full font-bold text-xl">Adopt</button>
             </div>
-            <div id="petGrid">
+
+            <!-- Pet Grid -->
+            <div class="grid md:grid-cols-4 gap-8">
+                <!-- Lost Pets -->
                 @foreach($recentLost as $pet)
                 <div class="pet-card" data-type="lost">
-                    <div class="relative">
-                        <img src="{{ $pet->image }}" class="pet-image">
+                    @if($pet->image)
+                        <img src="{{ asset('storage/' . $pet->image) }}" alt="{{ $pet->name }}" class="w-full h-64 object-cover">
+                    @else
+                        <div class="w-full h-64 bg-gray-300 flex items-center justify-center">
+                            <i class="fas fa-image text-gray-400 text-4xl"></i>
+                        </div>
+                    @endif
+                    <div class="p-6">
                         <span class="lost-badge">LOST</span>
-                    </div>
-                    <div class="p-4 text-center">
-                        <h3 class="font-bold text-xl">{{ $pet->pet_name }}</h3>
-                        <p class="text-gray-600">{{ $pet->breed }} • Missing {{ $pet->days_missing }} days</p>
-                        <a href="{{ route('lost.show', $pet) }}" class="mt-3 w-full bg-red-600 text-white py-2 rounded-lg font-semibold block">I've Seen This Pet</a>
+                        <h3 class="font-bold text-2xl mt-2">{{ $pet->name }}</h3>
+                        <p class="text-gray-600 mt-1">{{ $pet->breed ?? $pet->species }} • Missing {{ $pet->getDaysMissingAttribute() }} days</p>
+                        <a href="{{ route('lost.show', $pet) }}" class="mt-4 w-full bg-red-600 text-white py-3 rounded-xl font-semibold block text-center hover:bg-red-700">
+                            I've Seen This Pet
+                        </a>
                     </div>
                 </div>
                 @endforeach
 
-                @foreach($recentFound as $pet)
-                <div class="pet-card" data-type="found">
-                    <!-- similar structure with FOUND badge -->
+                <!-- Found Pets -->
+        @foreach($recentFound as $pet)
+        <div class="pet-card" data-type="found">
+            @if($pet->image)
+                <img src="{{ asset('storage/' . $pet->image) }}" alt="Found {{ $pet->species }}" class="w-full h-64 object-cover">
+            @else
+                <div class="w-full h-64 bg-gray-300 flex items-center justify-center">
+                    <i class="fas fa-image text-gray-400 text-4xl"></i>
                 </div>
-                @endforeach
-
-                @foreach($adoptable as $pet)
-                <div class="pet-card" data-type="adopt">
-                    <!-- similar with Adopt Me button -->
-                </div>
-                @endforeach
+            @endif
+            <div class="p-6">
+                <span class="found-badge">FOUND</span>
+                <h3 class="font-bold text-2xl mt-2">Found {{ $pet->species }}</h3>
+                <p class="text-gray-600 mt-1">{{ $pet->breed ?? 'Unknown breed' }} • Found {{ \Carbon\Carbon::parse($pet->found_date)->diffForHumans() }}</p>
+                <a href="{{ route('found.show', $pet) }}" class="mt-4 w-full bg-green-600 text-white py-3 rounded-xl font-semibold block text-center hover:bg-green-700">
+                    This is My Pet!
+                </a>
             </div>
         </div>
+        @endforeach
+
+        <!-- Adoption Pets -->
+        @foreach($adoptable as $pet)
+        <div class="pet-card" data-type="adopt">
+            @if($pet->image_main)
+                <img src="{{ asset('storage/' . $pet->image_main) }}" alt="{{ $pet->name }}" class="w-full h-64 object-cover">
+            @else
+                <div class="w-full h-64 bg-gray-300 flex items-center justify-center">
+                    <i class="fas fa-image text-gray-400 text-4xl"></i>
+                </div>
+            @endif
+            <div class="p-6">
+                <span class="adopt-badge">ADOPT ME</span>
+                <h3 class="font-bold text-2xl mt-2">{{ $pet->name }}</h3>
+                <p class="text-gray-600 mt-1">
+                    {{ $pet->breed }} • {{ floor($pet->age_months / 12) }} yrs {{ $pet->age_months % 12}} mos 
+                </p>
+                <a href="{{ route('adoption.show', $pet) }}" class="mt-4 w-full bg-purple-600 text-white py-3 rounded-xl font-semibold block text-center hover:bg-purple-700">
+                    Adopt Me
+                </a>
+            </div>
+        </div>
+        @endforeach
+    </div>
+</div>
     </main>
 
 
@@ -483,9 +539,21 @@
 
     <!-- Scripts -->
     <script>
+
+
+
+
+
         // Sidebar Toggle
         document.getElementById('hamburger').addEventListener('click', () => document.querySelector('.sidebar').classList.toggle('open'));
         document.querySelectorAll('.sidebar a').forEach(link => link.addEventListener('click', () => document.querySelector('.sidebar').classList.remove('open')));
+
+
+
+
+
+
+
 
         // Profile Dropdown (your original)
         document.querySelectorAll('.profile-dropdown').forEach(dropdown => {
@@ -500,6 +568,13 @@
         document.addEventListener('click', () => document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.remove('active')));
         document.querySelectorAll('.dropdown-menu').forEach(menu => menu.addEventListener('click', e => e.stopPropagation()));
 
+
+
+
+
+
+
+
         // Floating Button (now opens sheet)
         const floatBtn = document.createElement('button');
         floatBtn.id = 'floatBtn';
@@ -508,6 +583,14 @@
         document.body.appendChild(floatBtn);
         floatBtn.addEventListener('click', () => document.getElementById('quickSheet').classList.add('active'));
         document.getElementById('closeSheet').addEventListener('click', () => document.getElementById('quickSheet').classList.remove('active'));
+
+
+
+
+
+
+
+
 
         // Filter Tabs
         document.querySelectorAll('.filter-tab').forEach(tab => {
@@ -521,9 +604,65 @@
             });
         });
 
+
+
+
+
+
+
+
+
         // Geolocation Prompt (on alert click)
         document.querySelector('.alert-banner button').addEventListener('click', () => {
             if (navigator.geolocation) navigator.geolocation.getCurrentPosition(() => alert('Location enabled! Alerts updated.'));
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+        function filterPets(type) {
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('bg-white/20', 'text-white');
+                btn.classList.remove('bg-white', 'text-purple-700');
+            });
+            event.target.classList.add('active', 'bg-white', 'text-purple-700');
+            event.target.classList.remove('bg-white/20', 'text-white');
+
+            // Filter pet cards
+            document.querySelectorAll('.pet-card').forEach(card => {
+                if (type === 'all') {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = card.dataset.type === type ? 'block' : 'none';
+                }
+            });
+        }
+
+
+
+                // Close suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !searchSuggestions.contains(e.target)) {
+                searchSuggestions.classList.add('hidden');
+            }
+        });
+
+        // Submit search on Enter
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                window.location.href = `/search?q=${encodeURIComponent(this.value)}`;
+            }
         });
     </script>
 </body>

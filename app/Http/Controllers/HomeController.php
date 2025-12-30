@@ -28,7 +28,7 @@ class HomeController extends Controller
         $recentFound = FoundPet::where('is_claimed', false)->latest()->take(8)->get();
         $adoptable = AdoptionPet::where('is_adopted', false)->inRandomOrder()->take(8)->get();
 
-        $urgentCount = LostPet::whereDate('last_seen_date', today())->count();
+        $urgentCount = LostPet::whereDate('lost_date', today())->count();
 
         return view('homepage', compact(
             'possibleMatches',

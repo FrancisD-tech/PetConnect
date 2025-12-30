@@ -21,6 +21,24 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'full_name',
+        'birth_date',
+        'phone_number',
+        'address',
+        'id_type',
+        'government_id',
+        'verification_status',
+        'verified_at',
+        'rejection_reason',
+        'is_admin',
+        'profile_photo_path',
+    ];
+
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'verified_at' => 'datetime',
+        'birth_date' => 'date',
     ];
 
     /**
@@ -56,6 +74,31 @@ class User extends Authenticatable
         return $this->hasMany(Favorite::class);
     }
 
+    public function conversations()
+    {
+        $sent = $this->sentMessages()->pluck('receiver_id');
+        $received = $this->receivedMessages()->pluck('sender_id');
+
+        $userIds = $sent->merge($received)->unique()->values();
+
+        return User::whereIn('id', $userIds)
+            ->with(['sentMessages' => fn($q) => $q->where('receiver_id', $this->id),
+                    'receivedMessages' => fn($q) => $q->where('sender_id', $this->id)])
+            ->get()
+            ->map(function ($user) {
+                $latest = $user->sentMessages->concat($user->receivedMessages)
+                    ->sortByDesc('created_at')
+                    ->first();
+
+                return (object)[
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'last_message' => $latest?->message,
+                    'last_time' => $latest?->created_at,
+                ];
+            });
+}
+
     public function sentMessages()
     {
         return $this->hasMany(Message::class, 'sender_id');
@@ -79,5 +122,33 @@ class User extends Authenticatable
     public function adoptionPets()
     {
         return $this->hasMany(AdoptionPet::class);
+    }
+
+    public function index()
+    {
+        $userId = auth()->id();
+
+        // Get unique user IDs this user has messaged with
+        $conversations = Message::where('sender_id', $userId)
+            ->orWhere('receiver_id', $userId)
+            ->select('sender_id', 'receiver_id', 'message', 'created_at')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy(function ($msg) use ($userId) {
+                return $msg->sender_id == $userId ? $msg->receiver_id : $msg->sender_id;
+            })
+            ->map(function ($group, $otherUserId) {
+                $latest = $group->first();
+                $user = User::find($otherUserId);
+                return (object)[
+                    'id' => $otherUserId,
+                    'name' => $user?->name ?? 'Unknown',
+                    'last_message' => $latest->message,
+                    'last_time' => $latest->created_at,
+                ];
+            })
+            ->values();
+
+        return view('messages', compact('conversations'));
     }
 }

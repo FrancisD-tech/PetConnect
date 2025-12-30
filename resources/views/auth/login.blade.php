@@ -51,7 +51,7 @@
 
 			<!--Login form-->
 			<div class="space-y-6">
-				<form method="POST" action="{{ route('login') }}">
+				<form method="POST" action="{{ url('/login') }}">
 				@csrf
 				<div class="space-y-6">
 					<div class="">

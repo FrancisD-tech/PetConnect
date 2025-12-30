@@ -12,19 +12,73 @@ class MessageController extends Controller
 {
     public function index()
     {
-        $userId = Auth::id();
-        
-        // Get all conversations (users who have messaged with current user)
-        $conversations = Message::where('sender_id', $userId)
+        $userId = auth()->id();
+
+        // Get all messages involving the current user
+        $messages = Message::where('sender_id', $userId)
             ->orWhere('receiver_id', $userId)
-            ->with(['sender', 'receiver'])
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->groupBy(function($message) use ($userId) {
-                return $message->sender_id == $userId ? $message->receiver_id : $message->sender_id;
-            });
+            ->latest()
+            ->get();
+
+        // Group by the other user in the conversation
+        $conversations = $messages->groupBy(function ($message) use ($userId) {
+            return $message->sender_id == $userId ? $message->receiver_id : $message->sender_id;
+        })->map(function ($group, $otherUserId) {
+            $latestMessage = $group->first();
+            $otherUser = User::find($otherUserId);
+
+            return [
+                'id' => $otherUserId,
+                'name' => $otherUser?->name ?? 'Unknown User',
+                'last_message' => $latestMessage->message,
+                'last_time' => $latestMessage->created_at,
+            ];
+        })->values();
 
         return view('profile.messages', compact('conversations'));
+    }
+
+    public function searchUsers(Request $request)
+    {
+        $query = $request->q;
+        $users = User::where('name', 'like', "$query%")
+                     ->where('id', '!=', auth()->id())
+                     ->limit(10)
+                     ->select('id', 'name')
+                     ->get();
+
+                return response()->json($users);
+    }
+
+
+    public function conversation($userId)
+    {
+        $messages = Message::where(function ($q) use ($userId) {
+            $q->where('sender_id', auth()->id())->where('receiver_id', $userId);
+        })->orWhere(function ($q) use ($userId) {
+            $q->where('sender_id', $userId)->where('receiver_id', auth()->id());
+        })->orderBy('created_at')->get();
+
+        return response()->json($messages);
+    }
+
+    public function send(Request $request)
+    {
+        $request->validate([
+            'receiver_id' => 'required|exists:users,id',
+            'message' => 'required|string'
+        ]);
+
+        $message = Message::create([
+            'sender_id' => auth()->id(),
+            'receiver_id' => $request->receiver_id,
+            'message' => $request->message
+        ]);
+
+        // Broadcast event here for real-time
+        broadcast(new MessageSent($message))->toOthers();
+
+        return response()->json(['success' => true]);
     }
 
     public function show(User $user)

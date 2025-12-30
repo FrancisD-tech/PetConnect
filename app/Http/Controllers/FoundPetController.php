@@ -24,12 +24,10 @@ class FoundPetController extends Controller
             'species' => 'required|string',
             'breed' => 'nullable|string|max:255',
             'color' => 'nullable|string|max:255',
-            'approximate_age' => 'nullable|string|max:50',
-            'gender' => 'required|in:male,female,unknown',
             'description' => 'nullable|string',
             'found_location' => 'required|string|max:255',
             'found_date' => 'required|date',
-            'contact_phone' => 'required|string|max:50',
+            //'contact_phone' => 'required|string|max:50',
             'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
@@ -42,18 +40,27 @@ class FoundPetController extends Controller
 
         FoundPet::create([
             'user_id' => Auth::id(),
-            'species' => $request->species,
+            'pet_name' => $request->species,
             'breed' => $request->breed,
             'color' => $request->color,
-            'approximate_age' => $request->approximate_age,
-            'gender' => $request->gender,
+            //'approximate_age' => $request->approximate_age,
+            //'gender' => $request->gender,
             'description' => $request->description,
             'found_location' => $request->found_location,
             'found_date' => $request->found_date,
-            'contact_phone' => $request->contact_phone,
+            //'contact_phone' => $request->contact_phone,
             'image' => !empty($imagePaths) ? $imagePaths[0] : null,
         ]);
 
         return redirect('homepage')->with('success', 'Found pet report submitted! We are notifying the owners.');
+    }
+
+    public function edit(FoundPet $foundPet)
+    {
+        if (auth()->id() !== $foundPet->user_id) {
+            abort(403);
+        }
+
+        return view('nav.report_found', compact('foundPet')); 
     }
 }

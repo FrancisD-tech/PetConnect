@@ -22,7 +22,7 @@
             <div class="p-12 bg-white mx-auto rounded-3xl w-96">
                 <div class="mb-7">
                     <h3 class="font-semibold text-2xl text-gray-800">Create Account</h3>
-                    <p class="text-gray-400">Already have an account? <a href="login.php" class="text-sm text-purple-700 hover:text-purple-700">Sign In</a></p>
+                    <p class="text-gray-400">Already have an account? <a href="login" class="text-sm text-purple-700 hover:text-purple-700">Sign In</a></p>
                 </div>
 
 

@@ -27,29 +27,59 @@
             <div class="profile-dropdown relative">
                 <div class="profile-trigger flex items-center gap-4 p-4 rounded-2xl hover:bg-purple-50 cursor-pointer transition">
                     <div class="relative">
-                        <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="{{ $user->name }}" class="w-14 h-14 rounded-full border-4 border-purple-300">
+                        <img src="{{ auth()->user()->profile_photo_path 
+                        ? asset('storage/' . auth()->user()->profile_photo_path) 
+                        : 'https://randomuser.me/api/portraits/men/1.jpg' }}" alt="{{ $user->name }}" class="w-14 h-14 rounded-full border-4 border-purple-300">
                         <div class="w-4 h-4 bg-green-500 rounded-full border-2 border-white absolute bottom-0 right-0"></div>
                     </div>
+                    
                     <div class="hidden md:block">
                         <div class="font-bold text-lg">{{ $user->name }}</div>
-                        <div class="text-sm text-purple-600">Verified</div>
+                        @if($user->verification_status === 'verified')
+                            <div class="text-sm text-green-600 flex items-center gap-1">
+                                <i class="fas fa-check-circle"></i> Verified
+                            </div>
+                        @elseif($user->verification_status === 'pending')
+                            <div class="text-sm text-yellow-600 flex items-center gap-1">
+                                <i class="fas fa-clock"></i> Pending
+                            </div>
+                        @else
+                            <div class="text-sm text-red-600 flex items-center gap-1">
+                                <i class="fas fa-exclamation-circle"></i> Not Verified
+                            </div>
+                        @endif
                     </div>
+                    
                     <i class="fas fa-chevron-down ml-auto text-purple-600"></i>
                 </div>
 
                 <div class="dropdown-menu hidden absolute top-full left-0 mt-2 w-80 bg-white rounded-3xl shadow-2xl overflow-hidden z-50">
                     <div class="bg-gradient-to-r from-purple-600 to-pink-600 p-8 text-white">
                         <div class="flex items-center gap-4">
-                            <img src="https://randomuser.me/api/portraits/men/1.jpg" class="w-20 h-20 rounded-full border-4 border-white">
+                            <img src="{{ auth()->user()->profile_photo_path 
+                        ? asset('storage/' . auth()->user()->profile_photo_path) 
+                        : 'https://randomuser.me/api/portraits/men/1.jpg' }}" 
+                        class="w-20 h-20 rounded-full border-4 border-white">
                             <div>
                                 <h3 class="text-2xl font-bold">{{ $user->name }}</h3>
                                 <p class="opacity-90">{{ $user->email }}</p>
                             </div>
                         </div>
                         <div class="flex gap-3 mt-4">
-                            <span class="bg-white/20 px-4 py-2 rounded-full text-sm flex items-center gap-2">
-                                Verified <i class="fas fa-check-circle text-green-400"></i>
-                            </span>
+                            @if($user->verification_status === 'verified')
+                                <span class="bg-white/20 px-4 py-2 rounded-full text-sm flex items-center gap-2">
+                                    Verified <i class="fas fa-check-circle text-green-400"></i>
+                                </span>
+                            @elseif($user->verification_status === 'pending')
+                                <span class="bg-yellow-500/20 px-4 py-2 rounded-full text-sm flex items-center gap-2">
+                                    Pending <i class="fas fa-clock text-yellow-400"></i>
+                                </span>
+                            @else
+                                <a href="{{ route('verifications.dashboard') }}" class="bg-red-500/20 px-4 py-2 rounded-full text-sm flex items-center gap-2 hover:bg-red-500/30">
+                                    Not Verified <i class="fas fa-exclamation-circle text-red-400"></i>
+                                </a>
+                            @endif
+
                             <span class="bg-white/20 px-4 py-2 rounded-full text-sm flex items-center gap-2">
                                 {{ $pets->count() }} Pets
                             </span>
@@ -61,7 +91,7 @@
                             <i class="fas fa-user text-purple-600 text-xl"></i>
                             <span class="font-medium">My Profile</span>
                         </a>
-                        <a href="{{ route('favorites.index') }}" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-purple-50 transition">
+                        <a href="{{ route('my-posts.index') }}" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-purple-50 transition">
                             <i class="fas fa-heart text-pink-600 text-xl"></i>
                             <span class="font-medium">My Favorites</span>
                             <span class="ml-auto bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-bold">{{ $favoritesCount }}</span>
@@ -109,19 +139,68 @@
                 </div>
             @endif
 
+            <a href="{{ route('homepage') }}" class="inline-flex items-center gap-2 mb-8 text-white/80 hover:text-white text-lg">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+
             <div class="text-center mb-16">
                 <h1 class="text-6xl md:text-8xl font-bold mb-4">My Profile</h1>
                 <p class="text-2xl opacity-90">Welcome back, {{ $user->name }}</p>
             </div>
 
+
+
+
+
+
             <div class="glass rounded-3xl p-12 mb-12 text-center">
-                <img src="https://randomuser.me/api/portraits/men/1.jpg" class="w-40 h-40 rounded-full mx-auto border-8 border-white shadow-2xl mb-6">
+                <!-- Profile Photo with Upload Button -->
+                <div class="relative inline-block mb-8">
+                    <img src="{{ auth()->user()->profile_photo_path 
+                        ? asset('storage/' . auth()->user()->profile_photo_path) 
+                        : 'https://randomuser.me/api/portraits/men/1.jpg' }}" 
+                        alt="Profile Photo" 
+                        id="profilePhotoPreview"
+                        class="w-64 h-64 rounded-full object-cover border-12 border-white shadow-2xl">
+
+                    <!-- Camera Icon Button -->
+                    <button type="button" onclick="document.getElementById('profile_photo_input').click()" 
+                            class="absolute bottom-6 right-6 bg-purple-600 p-5 rounded-full hover:bg-purple-700 transition shadow-2xl">
+                        <i class="fas fa-camera text-white text-3xl"></i>
+                    </button>
+                </div>
+
+                <!-- Upload Form with Input Inside -->
+                <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data" id="photoUploadForm">
+                    @csrf
+                    @method('PATCH')
+                    <input type="file" name="profile_photo" id="profile_photo_input" class="hidden" accept="image/*">
+                </form>
+
                 <h2 class="text-5xl font-bold mb-2">{{ $user->name }}</h2>
                 <p class="text-2xl opacity-90 mb-6">{{ $user->email }}</p>
+
+
+
+
+
+
+                <!-- Status Badges -->
                 <div class="flex justify-center gap-6">
-                    <span class="bg-white/30 px-8 py-4 rounded-full text-xl font-bold flex items-center gap-3">
-                        Verified <i class="fas fa-check-circle text-green-400"></i>
-                    </span>
+                    @if($user->verification_status === 'verified')
+                        <span class="bg-white/30 px-8 py-4 rounded-full text-xl font-bold flex items-center gap-3">
+                            Verified <i class="fas fa-check-circle text-green-400"></i>
+                        </span>
+                    @elseif($user->verification_status === 'unverified')
+                        <a href="{{ route('verifications.dashboard') }}" class="bg-red-500/30 px-8 py-4 rounded-full text-xl font-bold flex items-center gap-3 hover:bg-red-500/40">
+                            Get Verified <i class="fas fa-exclamation-circle text-red-400"></i>
+                        </a>
+                    @else
+                        <span class="bg-yellow-500/30 px-8 py-4 rounded-full text-xl font-bold flex items-center gap-3">
+                            Verification Pending <i class="fas fa-clock text-yellow-400"></i>
+                        </span>
+                    @endif
+                    
                     <span class="bg-white/30 px-8 py-4 rounded-full text-xl font-bold flex items-center gap-3">
                         {{ $pets->count() }} Pets Registered
                     </span>
@@ -152,6 +231,12 @@
                     <p class="text-center text-gray-500 text-xl">No pets registered yet. Add your first pet!</p>
                 @endif
             </div>
+
+
+
+
+
+
 
             <div class="grid md:grid-cols-3 gap-8">
                 <div class="glass rounded-3xl p-10 text-center">
@@ -188,6 +273,27 @@
                 document.querySelector('.dropdown-menu')?.classList.add('hidden');
             }
         });
+
+        // Auto-submit when photo is selected
+        document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('profile_photo_input');
+        const form = document.getElementById('photoUploadForm');
+        const preview = document.getElementById('profilePhotoPreview');
+
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                }
+                reader.readAsDataURL(this.files[0]);
+
+                // Submit form
+                form.submit();
+            }
+        });
+    });
     </script>
 </body>
-</html>
+</html> 

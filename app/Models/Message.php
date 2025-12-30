@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Message extends Model
 {
+
     protected $fillable = ['sender_id', 'receiver_id', 'message', 'is_read'];
 
     protected $casts = [
@@ -21,4 +22,13 @@ class Message extends Model
     {
         return $this->belongsTo(User::class, 'receiver_id');
     }
+
 }
+/*Schema::create('messages', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('sender_id')->constrained('users')->cascadeOnDelete();
+    $table->foreignId('receiver_id')->constrained('users')->cascadeOnDelete();
+    $table->text('message');
+    $table->boolean('is_read')->default(false);
+    $table->timestamps();
+}); */

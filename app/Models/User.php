@@ -119,6 +119,11 @@ class User extends Authenticatable
         return $this->hasMany(FoundPet::class);
     }
 
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class)->orderBy('created_at', 'desc');
+    }
+
     public function adoptionPets()
     {
         return $this->hasMany(AdoptionPet::class);

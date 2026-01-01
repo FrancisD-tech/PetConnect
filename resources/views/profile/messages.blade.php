@@ -36,6 +36,9 @@
     <div class="w-full md:w-96 bg-white border-r border-gray-200 flex flex-col h-screen">
         <div class="p-4 border-b border-gray-200">
             <div class="flex items-center justify-between mb-4">
+                <a href="/homepage" class="inline-flex items-center gap-2  text-black/80 hover:text-solid-black transition mb-8">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
                 <h1 class="text-2xl font-bold text-gray-900">Messages</h1>
                 <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold">
                     {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
@@ -68,12 +71,20 @@
                 @foreach($conversations as $conv)
                 <div 
                     class="p-4 hover:bg-gray-50 cursor-pointer transition border-b border-gray-100 last:border-0"
-                    onclick="openChat({{ $conv['id'] }}, '{{ addslashes($conv['name']) }}')"
+                    onclick="openChat({{ $conv['id'] }}, '{{ addslashes($conv['name']) }}', '{{ $conv['profile_photo_path'] ? asset('storage/' . $conv['profile_photo_path']) : '' }}')"
                 >
                     <div class="flex items-center gap-4">
-                        <div class="w-14 h-14 bg-primary rounded-full flex items-center justify-center text-white text-xl font-bold shadow-md">
-                            {{ strtoupper(substr($conv['name'], 0, 2)) }}
+                        <!-- Real Profile Picture -->
+                        <div class="relative w-14 h-14 rounded-full overflow-hidden shadow-md flex-shrink-0">
+                            @if($conv['profile_photo_path'])
+                                <img src="{{ asset('storage/' . $conv['profile_photo_path']) }}" alt="{{ $conv['name'] }}" class="w-full h-full object-cover">
+                            @else
+                                <div class="w-full h-full bg-primary flex items-center justify-center text-white text-xl font-bold">
+                                    {{ strtoupper(substr($conv['name'], 0, 2)) }}
+                                </div>
+                            @endif
                         </div>
+
                         <div class="flex-1 min-w-0">
                             <div class="font-semibold text-gray-900 truncate">{{ $conv['name'] }}</div>
                             <div class="text-sm text-gray-600 truncate">
@@ -98,8 +109,11 @@
             <button onclick="closeChat()" class="md:hidden text-gray-600 hover:text-gray-900">
                 <i class="fas fa-arrow-left text-xl"></i>
             </button>
-            <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white text-lg font-bold shadow">
-                <span id="chatAvatar">A</span>
+            <div class="w-12 h-12 rounded-full overflow-hidden shadow flex-shrink-0">
+                <img src="" alt="" id="chatAvatarImg" class="w-full h-full object-cover hidden">
+                <div id="chatAvatarFallback" class="w-full h-full bg-primary flex items-center justify-center text-white text-lg font-bold">
+                    A
+                </div>
             </div>
             <div>
                 <h2 class="font-semibold text-gray-900" id="chatName">Select a conversation</h2>
@@ -182,10 +196,23 @@
             };
         }
 
-        function openChat(userId, name) {
+        function openChat(userId, name, profilePicture = null) {
             currentReceiverId = userId;
             document.getElementById('chatName').textContent = name;
-            document.getElementById('chatAvatar').textContent = name.charAt(0).toUpperCase();
+
+            const avatarImg = document.getElementById('chatAvatarImg');
+            const avatarFallback = document.getElementById('chatAvatarFallback');
+
+            if (profilePicture) {
+                avatarImg.src = profilePicture;
+                avatarImg.classList.remove('hidden');
+                avatarFallback.classList.add('hidden');
+            } else {
+                avatarImg.classList.add('hidden');
+                avatarFallback.classList.remove('hidden');
+                avatarFallback.textContent = name.charAt(0).toUpperCase();
+            }
+
             document.getElementById('chatArea').classList.remove('hidden', 'md:flex');
             document.getElementById('chatArea').classList.add('flex');
             document.querySelector('.w-full.md\\:w-96').classList.add('hidden', 'md:flex');
@@ -272,6 +299,15 @@
                 document.getElementById('searchResults').classList.add('hidden');
             }
         });
+
+        // Mark messages as read
+        fetch('/messages/mark-read/${userId}' , {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        }).catch(err => console.error('Mark read error:', err));
     </script>
 </body>
 </html>

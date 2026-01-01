@@ -24,16 +24,24 @@ class MessageController extends Controller
         $conversations = $messages->groupBy(function ($message) use ($userId) {
             return $message->sender_id == $userId ? $message->receiver_id : $message->sender_id;
         })->map(function ($group, $otherUserId) {
-            $latestMessage = $group->first();
-            $otherUser = User::find($otherUserId);
+        $latestMessage = $group->first();
+        $otherUser = User::find($otherUserId);
 
-            return [
-                'id' => $otherUserId,
-                'name' => $otherUser?->name ?? 'Unknown User',
-                'last_message' => $latestMessage->message,
-                'last_time' => $latestMessage->created_at,
-            ];
-        })->values();
+        // Count how many unread messages in this conversation
+        $unreadCount = Message::where('sender_id', $otherUserId)
+            ->where('receiver_id', auth()->id())
+            ->where('is_read', false)  // We'll add this column next
+            ->count();
+
+        return [
+            'id' => $otherUserId,
+            'name' => $otherUser?->name ?? 'Unknown User',
+            'profile_photo_path' => $otherUser?->profile_photo_path,
+            'last_message' => $latestMessage->message,
+            'last_time' => $latestMessage->created_at,
+            'unread_count' => $unreadCount,  // ← NEW
+        ];
+    })->values();
 
         return view('profile.messages', compact('conversations'));
     }
@@ -115,4 +123,16 @@ class MessageController extends Controller
 
         return back()->with('success', 'Message sent!');
     }
+
+    public function markAsRead($otherUserId)
+    {
+        Message::where('sender_id', $otherUserId)
+            ->where('receiver_id', auth()->id())
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        return response()->json(['success' => true]);
+    }
+
+    
 }

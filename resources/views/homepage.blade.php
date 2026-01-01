@@ -207,13 +207,35 @@
                     <i class="fas fa-cog w-5"></i>
                     <span>Settings</span>
                 </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-purple-50 hover:text-purple-700 transition text-gray-700 font-medium">
-                    <i class="fas fa-bell w-5"></i>
-                    <span>Notifications</span>
+                <a href="{{ route('notifications.index') }}" class="relative flex items-center gap-3 px-6 py-4 text-gray-700 hover:bg-purple-50 rounded-xl transition">
+                    <i class="fas fa-bell text-xl"></i>
+                    <span class="font-medium">Notifications</span>
+
+                    @php
+                        $unreadCount = auth()->user()->notifications()->where('is_read', false)->count();
+                    @endphp
+
+                    @if($unreadCount > 0)
+                        <span class="absolute -top--1 -right-0 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center shadow-lg animate-pulse">
+                            {{ $unreadCount > 99 ? '99+' : $unreadCount }}
+                        </span>
+                    @endif
                 </a>
-                <a href="{{ route('messages.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-purple-50 hover:text-purple-700 transition text-gray-700 font-medium">
-                    <i class="fas fa-message w-5"></i>
-                    <span>Chats</span>
+                <a href="/messages" class="relative flex items-center gap-4 px-6 py-4 text-gray-700 hover:bg-purple-50 rounded-xl transition">
+                    <i class="fas fa-comment-dots text-xl"></i>
+                    <span class="font-medium">Chats</span>
+                    
+                    @php
+                        $totalUnread = auth()->user()->receivedMessages()
+                            ->where('is_read', false)
+                            ->count();
+                    @endphp
+                    
+                    @if($totalUnread > 0)
+                        <span class="absolute left-30 top-3 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center shadow-lg animate-pulse">
+                            {{ $totalUnread > 99 ? '99+' : $totalUnread }}
+                        </span>
+                    @endif
                 </a>
             </nav>
         </div>

@@ -3,6 +3,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Notification;
+
 
 class VerificationController extends Controller
 {
@@ -33,6 +35,13 @@ class VerificationController extends Controller
             'id_type' => $request->id_type,
             'government_id' => $path,
             'verification_status' => 'unverified',
+
+            Notification::Create([
+                'user_id' => auth()->id(),
+                'type' => 'verification_submitted',
+                'message' => '✅ Your verification request has been submitted successfully. Please wait for admin review.',
+                'is_read' => false,
+            ])
         ]);
 
         return redirect()->back()->with('success', 'Verification submitted! Admin will review it soon.');

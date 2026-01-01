@@ -98,19 +98,33 @@
                         I've Seen This Pet
                     </button>
                     
+                    <!-- Owner Buttons: Edit and Mark as Reunited -->
                     @if(auth()->id() === $lostPet->user_id)
-                    <div class="flex gap-4">
-                        <a href="#" class="flex-1 py-4 bg-blue-600 text-white text-center text-xl font-bold rounded-xl hover:bg-blue-700">
-                            Edit Report
-                        </a>
-                        <form action="{{ route('lost.update', $lostPet) }}" method="POST" class="flex-1" onsubmit="return confirm('Mark as reunited?')">
-                            @csrf
-                            @method('PATCH')
-                            <button type="submit" class="w-full py-4 bg-purple-600 text-white text-xl font-bold rounded-xl hover:bg-purple-700">
-                                Mark as Reunited
-                            </button>
-                        </form>
-                    </div>
+                        @if(!$lostPet->is_reunited)
+                            <div class="flex gap-4 mt-8">
+                                <a href="{{ route('lost.edit', $lostPet) }}" 
+                                   class="flex-1 py-4 bg-blue-600 text-white text-center text-xl font-bold rounded-xl hover:bg-blue-700 transition">
+                                    Edit Report
+                                </a>
+
+                                <form action="{{ route('lost.reunite', $lostPet) }}" method="POST" class="flex-1"
+                                      onsubmit="return confirm('Mark as reunited? This will hide the post from public view and celebrate the happy ending! ❤️')">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" 
+                                            class="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xl font-bold rounded-xl hover:scale-105 transition shadow-lg">
+                                        Mark as Reunited 🎉
+                                    </button>
+                                </form>
+                            </div>
+                        @else
+                            <div class="glass p-10 rounded-3xl text-center mt-8">
+                                <i class="fas fa-heart text-8xl text-pink-400 mb-6"></i>
+                                <h2 class="text-4xl font-bold mb-4">Reunited! ❤️</h2>
+                                <p class="text-2xl opacity-90">Your pet is safely home.</p>
+                                <p class="text-xl mt-4">Thank you for using PetConnect!</p>
+                            </div>
+                        @endif
                     @endif
                 </div>
             </div>

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\LostPet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use App\Models\Notification;
 
 class LostPetController extends Controller
 {   
@@ -43,7 +45,7 @@ class LostPetController extends Controller
         }
        
 
-        LostPet::create([
+        $lostPet = LostPet::create([
             'user_id' => Auth::id(),
             'pet_name' => $request->name,
             'species' => $request->species,
@@ -58,6 +60,21 @@ class LostPetController extends Controller
             'image' => !empty($imagePaths) ? $imagePaths[0] : null, // Store first image
             'is_reunited' => false,
         ]);
+
+
+        // Notify all users
+        $users = User::where('id', '!=', Auth::id())->get();
+
+        foreach ($users as $user) {
+            Notification::create([
+                'user_id' => $user->id,
+                'notifiable_id' => $lostPet->id,
+                'notifiable_type' => LostPet::class,
+                'type' => 'new_lost_pet',
+                'message' => 'New lost pet reported: ' . $lostPet->pet_name . ' in ' . $lostPet->last_seen_location,
+                'is_read' => false,
+            ]);
+        }
 
         return redirect('homepage')->with('success', 'Lost pet report submitted successfully!')
                                  ->with('alert', true);
@@ -107,5 +124,26 @@ class LostPetController extends Controller
         }
 
         return view('nav.report_lost', compact('lostPet'));
+    }
+
+    public function reunite(LostPet $lostPet)
+    {
+        // Security: Only the owner can mark as reunited
+        if (auth()->id() !== $lostPet->user_id) {
+            abort(403, 'Unauthorized');
+        }
+
+        $lostPet->update([
+            'is_reunited' => true,
+        ]);
+
+        Notification::create([
+            'user_id' => auth()->id(),
+            'type' => 'pet_reunited',
+            'message' => '❤️ Your pet "' . $lostPet->pet_name . '" has been marked as reunited! Welcome home!',
+            'is_read' => false,
+        ]);
+
+        return redirect()->route('homepage')->with('success', 'Pet marked as reunited! We\'re so happy your pet is home safe! ❤️');
     }
 }

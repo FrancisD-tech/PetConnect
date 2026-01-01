@@ -77,6 +77,9 @@
                 <a href="/homepage" class="bg-gradient-to-r from-teal-500 to-cyan-600 text-white px-10 py-6 rounded-2xl text-2xl font-bold hover:shadow-2xl transition">
                     <i class="fas fa-home mr-4"></i> View Homepage
                 </a>
+                <a href="{{ route('admin.reunited') }}" class="bg-gradient-to-r from-teal-500 to-cyan-600 text-white px-10 py-6 rounded-2xl text-2xl font-bold hover:shadow-2xl transition">
+                    Reunited Pets Archive ❤️
+                </a>
             </div>
         </div>
     </div>

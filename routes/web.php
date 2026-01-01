@@ -15,7 +15,10 @@ use App\Models\AdoptionPet;
 use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\Admin\AdminVerificationController;
 use App\Http\Controllers\FoundPetController;
-
+use App\Models\LostPet;
+use App\Models\FoundPet;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\LostPetController;
 /*
 |--------------------------------------------------------------------------
 | Public Routes
@@ -158,6 +161,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/lost/{lostPet}/edit', [App\Http\Controllers\LostPetController::class, 'edit'])->name('lost.edit');
     Route::patch('/lost/{lostPet}', [App\Http\Controllers\LostPetController::class, 'update'])->name('lost.update');
     Route::delete('/lost/{lostPet}', [App\Http\Controllers\LostPetController::class, 'destroy'])->name('lost.destroy');
+
+    Route::patch('/lost/{lostPet}/reunite', [LostPetController::class, 'reunite'])
+    ->name('lost.reunite')
+    ->middleware('auth');
     });
 
 
@@ -233,6 +240,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/messages/conversation/{userId}', [MessageController::class, 'conversation']);
     Route::post('/messages/send', [MessageController::class, 'send']);
     Route::get('/search-users', [MessageController::class, 'searchUsers']);
+    Route::post('/messages/mark-read/{userId}', [MessageController::class, 'markAsRead'])->name('messages.markRead');
 });
 
     
@@ -284,7 +292,40 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post('/verifications/{user}/reject', [AdminVerificationController::class, 'reject'])->name('admin.verifications.reject');
 });
 
+
+
+
+
+
 Route::get('/make-admin', function () {
     auth()->user()->update(['is_admin' => true]);
     return 'You are now admin!';
 })->middleware('auth');
+
+
+
+
+
+
+Route::get('/admin/reunited', function () {
+    if (!auth()->check() || !auth()->user()->is_admin) {
+        abort(403, 'Unauthorized');
+    }
+
+    $reunitedPets = LostPet::where('is_reunited', true)
+        ->with('user')
+        ->latest('updated_at')  // ← Sort by when it was marked reunited (updated_at changes on update)
+        ->get();
+
+    return view('admin.reunited', compact('reunitedPets'));
+})->name('admin.reunited');
+
+
+
+/*|--------------------------------------------------------------------------
+| Notification Routes
+|--------------------------------------------------------------------------*/
+
+Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+Route::post('/notifications/mark-read/{id}', [NotificationController::class, 'markAsRead']);
+Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');

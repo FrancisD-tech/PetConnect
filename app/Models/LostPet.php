@@ -20,7 +20,9 @@ class LostPet extends Model
         'lost_date',  
         'contact_phone',       
         'image',
-        'is_reunited'
+        'is_reunited',
+        'status',
+        'reunited_at',
     ];
 
     protected $casts = [

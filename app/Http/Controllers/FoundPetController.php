@@ -10,6 +10,9 @@ class FoundPetController extends Controller
 {
     public function show(FoundPet $foundPet)
     {
+        //load the user who posted the found pet
+        $foundPet->load('user');
+
         return view('found.show', compact('foundPet'));
     }
 

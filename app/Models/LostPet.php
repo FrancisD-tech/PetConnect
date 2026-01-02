@@ -28,6 +28,7 @@ class LostPet extends Model
     protected $casts = [
         'lost_date' => 'date',
         'is_reunited' => 'boolean',
+        'images' => 'array',
     ];
 
     public function user()

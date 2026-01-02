@@ -12,6 +12,9 @@ class LostPetController extends Controller
 {   
     public function show(LostPet $lostPet)
     {
+        //load the user who posted the lost pet
+        $lostPet->load('user');
+
         return view('lost.show', compact('lostPet'));
     }
 
@@ -57,7 +60,8 @@ class LostPetController extends Controller
             'last_seen_location' => $request->last_seen_location,
             'lost_date' => $request->last_seen_date,
             'contact_phone' => $request->contact_phone,
-            'image' => !empty($imagePaths) ? $imagePaths[0] : null, // Store first image
+            'image' => $imagePaths ? $imagePaths[0] : null,
+            'images' => $imagePaths ? $imagePaths : null,
             'is_reunited' => false,
         ]);
 

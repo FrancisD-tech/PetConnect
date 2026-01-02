@@ -308,6 +308,14 @@
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             }
         }).catch(err => console.error('Mark read error:', err));
+
+        // Auto-open chat if ?user=ID is in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const startUserId = urlParams.get('user');
+        if (startUserId) {
+            const userName = "Pet Owner"; // You can improve this later
+            openChat(startUserId, userName);
+        }
     </script>
 </body>
 </html>

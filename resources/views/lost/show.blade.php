@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $lostPet->name }} • Lost Pet • PetConnect</title>
+    <title>{{ $lostPet->pet_name ?? 'Lost Pet' }} • PetConnect</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-    <link rel="stylesheet" href="{{ asset('css/api.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="{{ asset('js/api.js') }}"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #2f136fff 0%, #7026e6ff 100%); color: white; }
+        body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #2f136fff 0%, #7026e6ff 100%); color: white; min-height: 100vh; }
         .glass { background: rgba(255,255,255,0.15); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); }
-        .match-card { background: white; color: #1f2937; border-radius: 24px; overflow: hidden; }
-        .match-badge { @apply bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-full font-bold; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         .sidebar { position: fixed; top: 0; left: 0; width: 370px; height: 100vh; background: white; color: #1E293B; z-index: 1000; transform: translateX(-100%); transition: transform 0.35s ease; }
         .sidebar.open { transform: translateX(0); }
         #hamburger { position: fixed; top: 16px; left: 16px; z-index: 1002; width: 48px; height: 48px; background: rgba(255,255,255,0.25); backdrop-filter: blur(12px); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
@@ -46,42 +44,77 @@
                 <i class="fas fa-arrow-left"></i> Back
             </a>
 
-            <div class="grid md:grid-cols-2 gap-12">
-                <div>
-                    @if($lostPet->image)
-                        <img src="{{ asset('storage/' . $lostPet->image) }}" class="w-full rounded-3xl shadow-2xl object-cover h-96">
+            <!-- PHOTOS SECTION - MULTIPLE PHOTOS SUPPORT -->
+            <div class="mb-12">
+                <h3 class="text-4xl font-bold mb-6">
+                    Photos 
+                    @if($lostPet->images && count($lostPet->images) > 0)
+                        ({{ count($lostPet->images) }})
+                    @elseif($lostPet->image)
+                        (1)
                     @else
-                        <div class="w-full rounded-3xl shadow-2xl bg-gray-300 h-96 flex items-center justify-center">
-                            <p class="text-gray-600 text-2xl">No image available</p>
-                        </div>
+                        (0)
                     @endif
-                    
-                    <div class="glass mt-8 p-8 rounded-3xl">
-                        <h3 class="text-3xl font-bold mb-4">Last Seen Location</h3>
-                        <p class="text-xl mb-4">{{ $lostPet->last_seen_location }}</p>
-                        <div id="map" class="h-96 rounded-2xl shadow-lg"></div>
-                    </div>
-                </div>
+                </h3>
 
-                <div class="space-y-10">
+                @if($lostPet->images && count($lostPet->images) > 0)
+                    <!-- Horizontal scroll carousel for multiple photos -->
+                    <div class="overflow-x-auto pb-4 scrollbar-hide">
+                        <div class="flex gap-6">
+                            @foreach($lostPet->images as $img)
+                                <div class="flex-shrink-0">
+                                    <div class="rounded-3xl overflow-hidden shadow-2xl hover:scale-105 transition duration-300">
+                                        <img src="{{ asset('storage/' . $img) }}" class="w-full max-w-2xl h-96 object-cover">
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    @if(count($lostPet->images) > 1)
+                        <p class="text-center mt-4 text-white/80">← Swipe to see more photos →</p>
+                    @endif
+
+                @elseif($lostPet->image)
+                    <!-- Single old photo fallback -->
+                    <div class="rounded-3xl overflow-hidden shadow-2xl">
+                        <img src="{{ asset('storage/' . $lostPet->image) }}" class="w-full max-w-4xl h-96 object-cover mx-auto">
+                    </div>
+
+                @else
+                    <div class="rounded-3xl bg-gray-200/50 backdrop-blur border-4 border-dashed border-white/30 h-96 flex items-center justify-center">
+                        <p class="text-white/70 text-3xl font-medium">No photos available</p>
+                    </div>
+                @endif
+            </div>
+
+            <!-- PET DETAILS -->
+            <div class="grid md:grid-cols-2 gap-12">
+                <div class="order-2 md:order-1 space-y-8">
                     <div>
                         <span class="inline-block px-8 py-3 bg-red-600 rounded-full text-2xl font-bold mb-4">LOST</span>
-                        <h1 class="text-7xl font-bold mb-4">{{ $lostPet->name }}</h1>
+                        <h1 class="text-6xl md:text-7xl font-bold mb-4">{{ $lostPet->pet_name }}</h1>
+
+                        <p class="text-xl opacity-80 mb-4">
+                            Posted by: <strong>{{ $lostPet->user->name }}</strong>
+                        </p>
+
                         <p class="text-3xl opacity-90">
                             {{ $lostPet->breed ?? $lostPet->species }} • 
                             {{ ucfirst($lostPet->gender) }} • 
                             {{ $lostPet->age ? $lostPet->age . ' years' : 'Age unknown' }}
                         </p>
+
                         <p class="text-xl mt-6">
-                            Missing since {{ \Carbon\carbon::parse($lostPet->last_seen_date)->format('F d, Y')}}
+                            Missing since {{ \Carbon\Carbon::parse($lostPet->lost_date)->format('F d, Y') }}
                         </p>
-                        
+
                         @if($lostPet->color)
                         <p class="text-xl mt-3">
                             <strong>Color/Markings:</strong> {{ $lostPet->color }}
                         </p>
                         @endif
-                        
+
                         <p class="text-xl mt-3">
                             <strong>Contact:</strong> {{ $lostPet->contact_phone }}
                         </p>
@@ -93,12 +126,15 @@
                     </div>
                     @endif
 
-                    <button onclick="alert('Contact feature coming soon! Call: {{ $lostPet->contact_phone }}')" 
-                            class="w-full py-8 bg-gradient-to-r from-green-500 to-emerald-600 text-4xl font-bold rounded-3xl shadow-2xl hover:scale-105 transition">
-                        I've Seen This Pet
-                    </button>
-                    
-                    <!-- Owner Buttons: Edit and Mark as Reunited -->
+                    <!-- "I've Seen This Pet" Button -->
+                    @if(auth()->id() !== $lostPet->user_id)
+                        <a href="/messages?user={{ $lostPet->user_id }}" 
+                           class="block w-full py-8 bg-gradient-to-r from-green-500 to-emerald-600 text-4xl font-bold text-center rounded-3xl shadow-2xl hover:scale-105 transition">
+                            I've Seen This Pet — Message Owner
+                        </a>
+                    @endif
+
+                    <!-- Owner Buttons -->
                     @if(auth()->id() === $lostPet->user_id)
                         @if(!$lostPet->is_reunited)
                             <div class="flex gap-4 mt-8">
@@ -127,70 +163,47 @@
                         @endif
                     @endif
                 </div>
-            </div>
 
-            <!-- AI Matches Section (you can implement this later) -->
-            <!--
-            <div class="mt-20">
-                <h2 class="text-5xl font-bold text-center mb-12">Possible Matches Found</h2>
-                <div class="grid md:grid-cols-3 gap-10">
-                    <div class="match-card relative">
-                        <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600" class="w-full h-64 object-cover">
-                        <span class="match-badge absolute top-6 left-6">96% Match</span>
-                        <div class="p-6">
-                            <p class="text-2xl font-bold">Found Dog</p>
-                            <p class="text-gray-600">Golden Retriever • Seen today in Manila</p>
-                            <button class="mt-4 w-full bg-purple-600 text-white py-3 rounded-xl font-bold">Contact Finder</button>
-                        </div>
+                <!-- Map Section -->
+                <div class="order-1 md:order-2">
+                    <div class="glass mt-8 p-8 rounded-3xl">
+                        <h3 class="text-3xl font-bold mb-4">Last Seen Location</h3>
+                        <p class="text-xl mb-4">{{ $lostPet->last_seen_location }}</p>
+                        <div id="map" class="h-96 rounded-2xl shadow-lg"></div>
                     </div>
                 </div>
             </div>
-            -->
         </div>
     </main>
 
+    <!-- Map Script -->
     <script>
         document.getElementById('hamburger')?.addEventListener('click', () => document.querySelector('.sidebar').classList.toggle('open'));
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&callback=initMap" async defer></script>
     <script>
-    function initMap() {
-        // Use stored lat/lng if available
-        @if($lostPet->lat && $lostPet->lng)
-            const location = { lat: {{ $lostPet->lat }}, lng: {{ $lostPet->lng }} };
-        @else
-            // Fallback: center on a default location (e.g., Philippines)
-            const location = { lat: 7.7822, lng: 122.5868 }; // Ipil Rotonda
-        @endif
+        function initMap() {
+            @if($lostPet->lat && $lostPet->lng)
+                const location = { lat: {{ $lostPet->lat }}, lng: {{ $lostPet->lng }} };
+            @else
+                const location = { lat: 7.7822, lng: 122.5868 };
+            @endif
 
-        const map = new google.maps.Map(document.getElementById("map"), {
-            center: location,
-            zoom: 16,
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: false,
-            styles: [ // Optional: nice purple theme to match your site
-                { featureType: "all", elementType: "labels.text.fill", stylers: [{ color: "#ffffff" }] },
-                { featureType: "all", elementType: "labels.text.stroke", stylers: [{ color: "#000000" }, { lightness: 13 }] },
-                { featureType: "landscape", elementType: "all", stylers: [{ color: "#2f136f" }] },
-                { featureType: "road", elementType: "all", stylers: [{ lightness: 20 }] },
-            ]
-        });
+            const map = new google.maps.Map(document.getElementById("map"), {
+                center: location,
+                zoom: 16,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false,
+            });
 
-        new google.maps.Marker({
-            position: location,
-            map: map,
-            title: "Last seen here",
-            icon: {
-                url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png" // Red marker (or use a custom pet icon later)
-            }
-        });
-    }
-
-    // Fallback if lat/lng missing and address exists (optional advanced)
-    @if(!$lostPet->lat || !$lostPet->lng)
-        // You could add geocoding here to convert address to lat/lng on page load, but for now fallback works
-    @endif
+            new google.maps.Marker({
+                position: location,
+                map: map,
+                title: "Last seen here",
+                icon: { url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png" }
+            });
+        }
     </script>
 </body>
 </html>

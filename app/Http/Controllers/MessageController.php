@@ -30,7 +30,7 @@ class MessageController extends Controller
         // Count how many unread messages in this conversation
         $unreadCount = Message::where('sender_id', $otherUserId)
             ->where('receiver_id', auth()->id())
-            ->where('is_read', false)  // We'll add this column next
+            ->where('is_read', false)
             ->count();
 
         return [
